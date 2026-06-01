@@ -7,3 +7,16 @@ search: false
 
 @import "minimal-mistakes/skins/{{ site.minimal_mistakes_skin | default: 'default' }}"; // skin
 @import "minimal-mistakes"; // main partials
+
+/* 본문이 왼쪽 벽에 붙는 현상 해결 */
+#main {
+  padding-left: 5% !important;
+  padding-right: 5% !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+}
+
+/* 포스트 내부 콘텐츠 정렬 */
+.page__content {
+  max-width: 100% !important;
+}
