@@ -25,6 +25,6 @@ Members:
 
 ## V. Related Work
 
-[참고한 블로그](https://github.com/ultralytics/ultralytics)
+<https://github.com/ultralytics/ultralytics>
 
 ## VI. Conciusion: Discussion
