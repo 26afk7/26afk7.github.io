@@ -3,24 +3,22 @@ layout: post
 title: 고속도로 교통량 분석
 ---
 
-<div style="margin: 0 auto; max-width: 1000px; padding: 0 4%; box-sizing: border-box;">
+<div style="margin: 0 auto; max-width: 1000px; padding: 0 4%; box-sizing: border-box; line-height: 1.8;">
 
+<p>Members:</p>
 
-  Members: 
+<h2 style="margin-top: 30px;">I. Proposal</h2>
 
-## I. Proposal
+<h2 style="margin-top: 30px;">II. Datasets</h2>
 
-## II. Datasets
+<h2 style="margin-top: 30px;">III. Methodology</h2>
 
-## III. Methodology
+<h2 style="margin-top: 30px;">IV. Evaluation & Analysis</h2>
 
-## IV. Evaluation & Analysis
+<h2 style="margin-top: 30px;">V. Related Work</h2>
 
-## V. Related Work
+<p><a href="https://github.com/ultralytics/ultralytics" target="_blank">참고한 블로그</a></p>
 
-<https://github.com/ultralytics/ultralytics>
-
-## VI. Conciusion: Discussion
-
+<h2 style="margin-top: 30px;">VI. Conclusion: Discussion</h2>
 
 </div>
