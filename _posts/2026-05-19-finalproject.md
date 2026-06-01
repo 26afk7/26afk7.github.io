@@ -17,7 +17,7 @@ title: 고속도로 교통량 분석
 
 <h2 style="margin-top: 30px;">V. Related Work</h2>
 
-<p><a href="https://github.com/ultralytics/ultralytics" target="_blank">참고한 블로그</a></p>
+<p><a href="https://github.com/ultralytics/ultralytics" target="_blank" style="color: #0066cc; text-decoration: underline;">https://github.com/ultralytics/ultralytics</a></p>
 
 <h2 style="margin-top: 30px;">VI. Conclusion: Discussion</h2>
 
