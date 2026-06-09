@@ -11,6 +11,147 @@ title: 고속도로 교통량 분석
 
 <h2 style="margin-top: 30px;">II. Datasets</h2>
 
+1. 개요: 본 프로젝트는 고속도로 CCTV 영상을 활용하여 차량을 탐지하고 교통량을 분석하기 위해 두 가지 방식의 데이터셋 파이프라인을 제안합니다.
+
+· 샘플 데이터셋 (기본 제공): Ultralytics YOLO에서 제공하는 공식 회전 바운딩 박스(OBB) 샘플 데이
+터셋인 dota8.yaml을 사용하여 파이프라인을 검증합니다.
+
+· 커스텀 데이터셋 (실무 적용 시): 실제 고속도로 실시간 CCTV 스트리밍 화면을 캡처하거나 국토교
+통부 등에서 제공하는 공공 데이터를 수집하여 구축합니다. Target Class는 총 3가지로 정의합니다.
+
+Class 0: Sedan (승용차)
+
+Class 1: Bus (버스)
+
+Class 2: Truck (트럭)
+
+2. 코드 내 핵심 이론 및 동작 원리
+
+1) 수평 바운딩 박스 (HBB) VS 회전 바운딩 박스 (OBB)
+
+고속도로 CCTV 환경에서는 차량이 카메라를 기준으로 비스듬하게 주행하거나 사선으로 찍히는 경
+우가 많습니다.
+
+· 일반 수평 바운딩 박스 (HBB): x, y, w, h (중심 좌표, 가로, 세로)의 4개 파라미터만 사용합니다. 객
+체가 비스듬히 누워있으면 박스 내부에 불필요한 배경(도로, 가드레일 등)이 많이 포함되고, 차량끼리
+밀집했을 때 박스가 서로 겹쳐 오탐지가 발생하기 쉽습니다.
+
+· 회전 바운딩 박스 (OBB): 기존 4개 파라미터에 회전 각도(¥è) 파라미터가 추가된 5차원 데이터를
+다룹니다. 차량의 실제 진행 방향과 기울기에 맞춰 박스가 회전하므로, 불필요한 배경 여백을 최소화
+하고 밀집된 교통 상황에서도 차종 간의 경계를 정확하게 구분해 냅니다.
+
+2) 객체 탐지 평가 지표의 수학적 이해
+
+코드에서 모델의 성능을 평가하기 위해 출력하는 성적표(mAP, Precision, Recall)는 모두
+IoU(Intersection over Union)라는 기하학적 개념을 기반으로 계산됩니다.
+
+· IoU (교집합/합집합): 모델이 예측한 회전 박스와 사람이 직접 친 정답 박스가 얼마나 정확하게
+겹치는지를 0~1 사이의 수치로 나타낸 것입니다. OBB 모델은 각도가 틀어진 사각형 간의 겹침 면
+적을 계산해야 하므로 일반 HBB보다 고차원의 연산이 수행됩니다.
+
+· Precision (정밀도): 모델이 차량이라고 예측한 것 중에서 실제 차량이 맞았던 비율입니다. (예: 빈
+도로를 차라고 잘못 잡는 '오탐지'가 적을수록 이 수치가 올라갑니다.)
+
+· Recall (재현율): CCTV 화면 속에 존재하는 실제 차량 중 모델이 놓치지 않고 찾아낸 비율입니다.
+(예: 차가 지나가는데 유령 취급하고 놓치는 '미탐지'가 적을수록 이 수치가 올라갑니다.)
+
+· mAP50 & mAP50-95: IoU 기준을 0.5(50%)로 잡았을 때의 완화된 종합 정확도(mAP50)와, 0.5부
+터 0.95까지 깐깐하게 올려가며 측정한 엄격한 종합 정확도(mAP50-95)입니다.
+
+3) 실시간 교통량 측정 원리: Object Tracking & ID 중복 제거
+
+CCTV 영상 분석 코드의 핵심은 단순히 프레임별로 차량을 '찾는 것(Detection)'을 넘어, 움직이는 차
+량을 '추적(Tracking)'하여 순수 통행량을 세는 것입니다.
+
+· ID 유지 (persist=True): YOLO의 내장 트래커를 활성화하면 각 차량에 고유한 ID 번호가 부여됩
+니다. 모델은 이전 프레임의 차량 위치와 속도를 바탕으로 다음 프레임에서의 위치를 예측하여, 동일
+한 차량이 화면에서 사라질 때까지 같은 ID를 연속적으로 부여(Persist)합니다.
+
+· Set 자료형을 통한 카운팅 알고리즘: 고속도로 영상 특성상 한 대의 차량이 화면을 통과하는 동
+안 수백 번 이상 검출됩니다. 중복 카운트를 방지하기 위해 프로그램은 탐지된 차량 ID들을 파이썬의
+set() 구조에 누적합니다. 집합(Set)의 '중복을 허용하지 않는 성질' 덕분에 한 차량이 아무리 오래 화
+면에 머물러도 영상 전체를 통과한 '순수 고유 차량의 대수'만 정확하게 산출할 수 있게 됩니다.
+
+3. 단계별 핵심 코드 및 알고리즘 분석
+
+1) OBB 모델 검증 및 성적표 정량화
+
+· 모델이 학습을 마친 후, 객체 탑지 모델의 핵심 지표 (mAP, Precision, Recall)를 안전하게 추출하는
+구간입니다.
+
+# 1. 학습을 통해 얻은 최적의 가중치 파일(best.pt)을 로드
+
+model = YOLO("runs/obb/train/weights/best.pt")
+
+# 2. 검증 데이터셋(dota8.yaml)을 바탕으로 모델 성능 검증 수행
+
+metrics = model.val(data="dota8.yaml", plots=True, workers=0, device='cpu') [cite: 11, 18]
+
+# 3. .box 속성을 참조하여 안전하게 수치 출력
+
+print(f"mAP50-95 (종합 정확도) : {metrics.box.map:.4f}") [cite: 11, 15]
+
+print(f"Precision (정밀도) : {metrics.box.mp:.4f}") [cite: 11, 15]
+
+print(f"Recall (재현율) : {metrics.box.mr:.4f}") [cite: 12, 15]
+
+2) 정성적 평가를 위한 시각화 그래프 출력
+
+· 콘솔창에 뜨는 숫자 외에, 모델이 어떤 오분류 경향을 보이는지 시각화된 이미지 파일(png)을 호
+출하는 구간입니다.
+
+# 1. 정밀도-재현율 곡선 이미지 출력
+
+show_metric_image(save_dir, "PR_curve.png", "Precision-Recall Curve (차종별 분류 성능)") [cite: 15]
+
+# 2. 혼동 행렬 이미지 출력 (차종별 오분류 경향 분석)
+
+show_metric_image(save_dir, "confusion_matrix_normalized.png", "Normalized Confusion Matrix") [cite: 16]
+
+# 3. F1-Score 곡선 이미지 출력 (최적의 임계값 탐색)
+
+show_metric_image(save_dir, "F1_curve.png", "F1-Confidence Curve") [cite: 17]
+
+3) 실시간 영상 내 고유 차량 객체 추적
+
+· CCTV 동영상 환경에서 단순 탐지를 넘어 차량의 '움직임'을 추적하고 고유 ID를 부여하는 핵심
+구간입니다.
+
+# 영상의 프레임을 한 장씩 읽어오며 객체 추적(Track) 수행
+
+results = model.track(frame, persist=True, verbose=False) [cite: 22]
+
+4) Set 구조 기반 중복 제거 및 교통량 정확도 계산
+
+· 추적된 차량 ID를 이용해 순수 교통량을 카운트하고, 실제 값과 비교해 시스템의 정확도를 도출
+하는 알고리즘 구간입니다.
+
+# 1. 중복을 허용하지 않는 파이썬 세트(Set) 정의
+
+tracked_vehicle_ids = set() [cite: 21]
+
+# 2. OBB 모델이 감지한 차량들의 고유 ID를 세트에 누적 (중복 자동 제거)
+
+if results[0].obb is not None and results[0].obb.id is not None: [cite: 22]
+
+ids = results[0].obb.id.cpu().numpy().astype(int) [cite: 22]
+
+for obj_id in ids:
+
+tracked_vehicle_ids.add(obj_id) [cite: 23]
+
+# 3. 제로 디비전 및 마이너스 정확도 방지 안전장치 알고리즘
+
+predicted_count = len(tracked_vehicle_ids) [cite: 23]
+
+error_count = abs(ground_truth_count - predicted_count) [cite: 23]
+
+if ground_truth_count > 0:
+
+accuracy = (1 - (error_count / ground_truth_count)) * 100 [cite: 23, 24]
+
+accuracy = max(0.0, accuracy) [cite: 24]
+
 <h2 style="margin-top: 30px;">III. Methodology</h2>
  본 연구에서는 영상 내 객체를 실시간으로 탐지하고 추적하기 위해 딥러닝 기반의 1단계 객체 탐지모델인 YOLO(You Only Look Once) 알고리즘을 채택하였다. 특히, 드론 뷰와 같이 객체의 회전각이 다양하게 나타나는 환경에서 탐지 정확도를 극대화하기 위해 OBB(Oriented Bounding Box) 기술이 적용된 YOLO 모델을 활용하여 시스템을 구축하였다.
  
