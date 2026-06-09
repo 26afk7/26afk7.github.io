@@ -5,9 +5,11 @@ title: 고속도로 교통량 분석
 
 <div style="margin: 0 auto; max-width: 1000px; padding: 0 4%; box-sizing: border-box; line-height: 1.8;">  
 
-# 고속도로 교통량 분석
+# 고속도로 교통량 분석    
 
-## Members
+   
+## Members    
+
 
 | 이름 | 학과 | 이메일 |
 | :--- | :--- | :--- |
@@ -15,13 +17,16 @@ title: 고속도로 교통량 분석
 | 이가기 | 의류학과 | [jwlee_0514@naver.com](mailto:jwlee_0514@naver.com) |
 | 이모우 | 경영학과 | [lmyu70@163.com](mailto:lmyu70@163.com) |
 | 정주연 | 수학과 | [jjykin1226@gmail.com](mailto:jjykin1226@gmail.com) |
-| 조대원 | 기계공학부 | [daewon990926@gmail.com](mailto:daewon990926@gmail.com) |
+| 조대원 | 기계공학부 | [daewon990926@gmail.com](mailto:daewon990926@gmail.com) |       
 
-## 첨부 영상
 
+
+## 첨부 영상   
+
+      
 
 https://github.com/user-attachments/assets/439db3ab-cf81-489b-a573-350044b407e2  
-https://github.com/user-attachments/assets/b62d3179-5a74-4f6e-bddb-6c9e4e0a6579
+https://github.com/user-attachments/assets/b62d3179-5a74-4f6e-bddb-6c9e4e0a6579      
 
 
 
