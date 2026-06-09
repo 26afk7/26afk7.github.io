@@ -3,7 +3,7 @@ layout: post
 title: 고속도로 교통량 분석
 ---
 
-<div style="margin: 0 auto; max-width: 1000px; padding: 0 4%; box-sizing: border-box; line-height: 1.8;">  
+
 
 # 고속도로 교통량 분석    
 
@@ -379,5 +379,3 @@ OBB는 객체의 방향 정보를 함께 예측할 수 있기 때문에 차량, 
 | 정주연 | 모델 성능 평가, 분석 및 결과 시각화 |
 | 조대원 | 데이터셋 분석, 소스코드 분석 |
 
-
-</div>
